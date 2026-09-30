@@ -1,0 +1,19 @@
+{
+  "name": "flynest-video",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "render": "remotion render src/index.ts FlyNestPromo out/flynest-promo.mp4"
+  },
+  "dependencies": {
+    "@fontsource/cairo": "^5.3.0",
+    "@remotion/cli": "^4.0.530",
+    "@remotion/renderer": "^4.0.530",
+    "@types/react": "^19.3.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "remotion": "^4.0.530",
+    "typescript": "^7.0.2"
+  }
+}
