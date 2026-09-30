@@ -1,5 +1,5 @@
 import React from 'react';
-import {AbsoluteFill, Img, staticFile} from 'remotion';
+import {AbsoluteFill, Img, Sequence, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
 
 const C = {navy: '#002FAB', gold: '#FECE04', blue: '#3580F2'};
 
@@ -21,19 +21,27 @@ export type PostProps = {
   bubbleTop: number;
   bubbleWidth: number;
   fontSize: number;
+  animate?: boolean;
 };
 
 export const Post: React.FC<PostProps> = ({
-  photo, objectPosition, scale = 1, name, text, side, bubbleTop, bubbleWidth, fontSize,
-}) => (
-  <AbsoluteFill style={{background: C.blue}}>
+  photo, objectPosition, scale = 1, name, text, side, bubbleTop, bubbleWidth, fontSize, animate,
+}) => {
+  const f = useCurrentFrame();
+  const {fps} = useVideoConfig();
+  const zoom = animate ? interpolate(f, [0, 150], [1, 1.07], {extrapolateRight: 'clamp'}) : 1;
+  const pop = animate ? spring({frame: f - 12, fps, config: {damping: 12, stiffness: 130}}) : 1;
+  const logoIn = animate ? interpolate(f, [0, 15], [0, 1], {extrapolateRight: 'clamp'}) : 1;
+  const fadeOut = animate ? interpolate(f, [138, 150], [1, 0], {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'}) : 1;
+  return (
+  <AbsoluteFill style={{background: C.blue, opacity: fadeOut}}>
     <style>{fontCss}</style>
     <Img
       src={staticFile(photo)}
-      style={{width: '100%', height: '100%', objectFit: 'cover', objectPosition, transform: `scale(${scale})`, transformOrigin: 'bottom center'}}
+      style={{width: '100%', height: '100%', objectFit: 'cover', objectPosition, transform: `scale(${scale * zoom})`, transformOrigin: 'bottom center'}}
     />
     {/* logo slot */}
-    <div style={{position: 'absolute', top: 44, left: 0, right: 0, display: 'flex', justifyContent: 'center'}}>
+    <div style={{position: 'absolute', top: 44, left: 0, right: 0, display: 'flex', justifyContent: 'center', opacity: logoIn}}>
       <div style={{background: '#fff', borderRadius: 44, padding: '18px 34px', boxShadow: '0 10px 30px rgba(0,47,171,0.25)'}}>
         <Img src={staticFile('img/logo.png')} style={{height: 96, display: 'block'}} />
       </div>
@@ -51,6 +59,9 @@ export const Post: React.FC<PostProps> = ({
         boxShadow: '0 16px 40px rgba(0,47,171,0.30)',
         direction: 'rtl',
         fontFamily: 'Cairo, sans-serif',
+        opacity: pop,
+        transform: `scale(${0.6 + 0.4 * pop})`,
+        transformOrigin: side === 'left' ? 'bottom right' : 'bottom left',
       }}
     >
       <div
@@ -82,6 +93,17 @@ export const Post: React.FC<PostProps> = ({
         }}
       />
     </div>
+  </AbsoluteFill>
+  );
+};
+
+export const CarouselVideo: React.FC = () => (
+  <AbsoluteFill style={{background: C.blue}}>
+    {Object.values(posts).map((p, i) => (
+      <Sequence key={i} from={i * 150} durationInFrames={150}>
+        <Post {...p} animate />
+      </Sequence>
+    ))}
   </AbsoluteFill>
 );
 
